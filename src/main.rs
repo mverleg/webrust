@@ -1,4 +1,7 @@
 use ::clap::Parser;
+use ::tracing_subscriber;
+use ::axum::Router;
+use ::axum::routing;
 
 use crate::args::Args;
 
@@ -8,7 +11,15 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
     let args = Args::parse();
-    todo!("Hello, world!");
+
+    let app = Router::new()
+        .route("/", routing::get(|| async { "Hello, World!" }));
+
+    axum::Server::bind(&args.host.parse().unwrap())
+        .serve(app.into_make_service())
+        .await.unwrap();
 }

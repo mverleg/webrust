@@ -16,6 +16,10 @@ clap = { version = "4.2.5", default-features = true, features = ["derive", "unic
 tracing = { version = "0.1.37", features = ["max_level_off", "release_max_level_info"] }
 #tracing-timing = "0.6.0"
 tracing-subscriber = { version = "0.3.17", features = ["time", "parking_lot"] }
+axum = { version = "0.6.18", features = ["http2", "multipart", "tracing"] }
+tokio = { version = "1.28.0", features = ["full"] }
+hyper = { version = "0.14.26", features = ["full"] }
+tower = "0.4.13"
 
 #TODO @mark: unused, clean up:
 regex = "1.8.1"
