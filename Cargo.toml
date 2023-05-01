@@ -11,6 +11,9 @@ repository = "https://github.com/mverleg/webrust"
 name = "webrust"
 path = "src/main.rs"
 
+[dependencies]
+clap = { version = "4.2.5", default-features = true, features = ["derive", "unicode"] }
+
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 jemallocator = "0.5.0"
 
