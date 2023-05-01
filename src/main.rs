@@ -2,6 +2,8 @@ use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
 use ::tracing::info;
+use ::tracing::Level;
+use ::tracing::span;
 use ::tracing_subscriber;
 
 use crate::args::Args;
@@ -14,13 +16,7 @@ mod args;
 
 #[tokio::main]
 async fn main() {
-    let subscriber = tracing_subscriber::fmt()
-        .compact()
-        .with_line_number(true)
-        .with_thread_ids(true)
-        .with_target(true)
-        .finish();
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    tracing_subscriber::fmt::init();
 
     let args = Args::parse();
 
@@ -28,7 +24,9 @@ async fn main() {
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
         .route("/", routing::get(|| async { "Hello, World!" }));
 
-    info!("starting server at {}", &args.host);
+    let span = span!(Level::INFO, "running_server");
+    let _guard = span.enter();
+    info!("host = {}", &args.host);
     axum::Server::bind(&args.host.parse().unwrap())
         .serve(app.into_make_service())
         .await.unwrap();
