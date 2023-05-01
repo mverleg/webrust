@@ -1,0 +1,23 @@
+[package]
+name = "webrust"
+version = "0.1.1"
+description = "Apivolve is an API evolution tool, it helps keep your APIs backwards compatible yet clean, and generates client/server code in a variety of languages."
+edition = "2021"
+publish = false
+license = "Apache-2.0"
+repository = "https://github.com/mverleg/webrust"
+
+[[bin]]
+name = "webrust"
+path = "src/main.rs"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+jemallocator = "0.5.0"
+
+[profile.release]
+lto = "thin"
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3
+
