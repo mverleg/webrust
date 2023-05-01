@@ -1,0 +1,16 @@
+{
+  "bump_dependencies": {
+    "ci": {},
+    "cargo": {},
+    "dockerfile": true
+  },
+  "check_dependencies": {},
+  "test_lint": {
+    "test": true,
+    "lint":  true,
+    "lint_strict":  false,
+    "fmt": false,
+    "examples": false
+  },
+  "release": false
+}
