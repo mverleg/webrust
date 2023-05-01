@@ -9,6 +9,6 @@ pub struct Args {
 
 #[test]
 fn test_cli_args() {
-    AddArgs::try_parse_from(&["cmd"]).unwrap();
-    AddArgs::try_parse_from(&["cmd", "test.domain.tld:80"]).unwrap();
+    Args::try_parse_from(&["cmd"]).unwrap();
+    Args::try_parse_from(&["cmd", "test.domain.tld:80"]).unwrap();
 }
