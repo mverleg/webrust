@@ -3,8 +3,6 @@ use ::axum::routing;
 use ::clap::Parser;
 use ::tracing::info;
 use ::tracing_subscriber;
-use ::tracing_subscriber::EnvFilter;
-use tracing_subscriber::prelude::*;
 
 use crate::args::Args;
 
@@ -16,12 +14,13 @@ mod args;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_timer(tracing_subscriber::fmt::time::uptime())
-        .with(tracing_subscriber::fmt::layer())
-        .with(EnvFilter::from_default_env())
-        .with_level(true)
-        .init();
+    let subscriber = tracing_subscriber::fmt()
+        .compact()
+        .with_line_number(true)
+        .with_thread_ids(true)
+        .with_target(true)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).unwrap();
 
     let args = Args::parse();
 
