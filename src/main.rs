@@ -1,3 +1,5 @@
+use ::askama::Template;
+use ::axum::response::Html;
 use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
@@ -14,6 +16,19 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
 
+//TODO @mark: brotli
+
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate<'a> {
+    name: &'a str,
+}
+
+async fn index() -> Html<String> {
+    let templ = IndexTemplate { name: "world" };
+    Html(templ.render().unwrap())
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
@@ -22,7 +37,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
-        .route("/", routing::get(|| async { "Hello, World!" }));
+        .route("/", routing::get(index));
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
