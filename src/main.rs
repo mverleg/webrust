@@ -20,13 +20,13 @@ mod args;
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate<'a> {
-    name: &'a str,
+struct IndexTemplate {
+    name: String,
 }
 
-async fn index() -> Html<String> {
-    let templ = IndexTemplate { name: "world" };
-    Html(templ.render().unwrap())
+async fn index() -> IndexTemplate {
+    let templ = IndexTemplate { name: "world".to_owned() };
+    templ
 }
 
 #[tokio::main]
