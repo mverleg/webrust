@@ -1,4 +1,7 @@
+#![feature(lazy_cell)]
+
 use ::std::env;
+use std::path::PathBuf;
 
 use ::askama::Template;
 use ::axum::response::Html;
@@ -17,6 +20,7 @@ use crate::args::Args;
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
+mod resources;
 
 //TODO @mark: brotli
 
@@ -35,10 +39,6 @@ impl Default for SharedContext {
             css: collect_css_links()
         }
     }
-}
-
-fn collect_css_links() -> Vec<String >{
-    todo!() //TODO @mark:
 }
 
 #[derive(Template)]
