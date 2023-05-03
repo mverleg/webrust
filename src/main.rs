@@ -1,3 +1,5 @@
+use ::std::env;
+
 use ::askama::Template;
 use ::axum::response::Html;
 use ::axum::Router;
@@ -18,15 +20,37 @@ mod args;
 
 //TODO @mark: brotli
 
-#[derive(Template)]
-#[template(path = "index.html")]
-struct IndexTemplate {
-    name: String,
+#[derive(Debug)]
+struct SharedContext {
+    base_url: String,
+    css: Vec<String>,
 }
 
-async fn index() -> IndexTemplate {
-    let templ = IndexTemplate { name: "world".to_owned() };
-    templ
+impl Default for SharedContext {
+    //TODO @mark: or maybe use Rc instead of default?
+    fn default() -> Self {
+        SharedContext {
+            //TODO @mark: get from somewhere
+            base_url: env::var("WEBRUST_DOMAIN").unwrap_or_else(|_| "localhost:8080".to_owned()),
+            css: collect_css_links()
+        }
+    }
+}
+
+fn collect_css_links() -> Vec<String >{
+    todo!() //TODO @mark:
+}
+
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate<'a> {
+    shared: SharedContext,
+    name: &'a str,
+}
+
+async fn index() -> Html<String> {
+    let templ = IndexTemplate { shared: SharedContext::default(), name: "world" };
+    Html(templ.render().unwrap())
 }
 
 #[tokio::main]
