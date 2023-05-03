@@ -1,9 +1,19 @@
-
+<!doctype html>
+<html lang="en">
 <head>
-<title>{% block title %}Home{% endblock title %} - Webrust demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# TODO @mark: replace by local version #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    {% for css in shared.css %}
+    <link rel="stylesheet" href="{{ css }}">
+    {% endfor %}
+    <title>{% block title %}Home{% endblock title %} - Webrust demo</title>
 </head>
-
 <body>
-{% block content %}{% endblock content %}
+<main class="container">
+    {% block content %}{% endblock content %}
+</main>
 <footer><p>webrust demo</p></footer>
 </body>
+</html>
