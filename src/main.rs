@@ -54,6 +54,8 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let args = Args::parse();
+    // initialize this to detect problems on startup instead of first request
+    SharedContext::default();
 
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
