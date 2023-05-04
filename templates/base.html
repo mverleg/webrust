@@ -11,9 +11,21 @@
     <title>{% block title %}Home{% endblock title %} - Webrust demo</title>
 </head>
 <body>
-<main class="container">
-    {% block content %}{% endblock content %}
-</main>
-<footer><p>webrust demo</p></footer>
+<div class="container">
+    <nav>
+        <ul>
+            <li><strong>Brand</strong></li>
+        </ul>
+        <ul>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#" role="button">Button</a></li>
+        </ul>
+    </nav>
+    <main>
+        {% block content %}{% endblock content %}
+    </main>
+    <footer><p>webrust demo</p></footer>
+</div>
 </body>
 </html>
