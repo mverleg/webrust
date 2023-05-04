@@ -27,7 +27,9 @@ pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
             let _bytes_written = io::copy(&mut file, &mut hasher).unwrap();
             let hash_bytes = hasher.finalize();
             let hash = general_purpose::URL_SAFE_NO_PAD.encode(hash_bytes)[..16].to_owned();
-            format!("{}?v={hash}", pth.to_str().expect("css file path not utf safe"))
+            let mut url = PathBuf::from("s");
+            url.push(name);
+            format!("{}?v={hash}", url.to_str().expect("css file path not utf safe"))
         })
         .collect()
 });

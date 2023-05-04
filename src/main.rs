@@ -10,6 +10,8 @@ use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
 
+use ::tower_http::services::ServeDir;
+
 use crate::args::Args;
 
 #[cfg(feature = "jemalloc")]
@@ -59,6 +61,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
+        .nest_service("/s", ServeDir::new("static"))
         .route("/", routing::get(index));
 
     let span = span!(Level::INFO, "running_server");
@@ -66,5 +69,6 @@ async fn main() {
     info!("host = {}", &args.host);
     axum::Server::bind(&args.host.parse().unwrap())
         .serve(app.into_make_service())
+        //TODO @mark: axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .await.unwrap();
 }
