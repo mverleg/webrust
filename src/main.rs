@@ -11,6 +11,7 @@ use ::tracing::span;
 use ::tracing_subscriber;
 
 use ::tower_http::services::ServeDir;
+use minify_html::Cfg;
 
 use crate::args::Args;
 
@@ -48,9 +49,9 @@ struct IndexTemplate<'a> {
     name: &'a str,
 }
 
-async fn index() -> Html<String> {
+async fn index() -> Html<Vec<u8>> {
     let templ = IndexTemplate { shared: SharedContext::default(), name: "world" };
-    Html(templ.render().unwrap())
+    Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default()))
 }
 
 #[tokio::main]
