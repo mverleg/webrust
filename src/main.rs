@@ -2,7 +2,6 @@
 
 use ::askama::Template;
 use ::axum::response::Html;
-use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
 use ::tracing::info;
@@ -11,7 +10,10 @@ use ::tracing::span;
 use ::tracing_subscriber;
 
 use ::tower_http::services::ServeDir;
+use axum::Router;
 use minify_html::Cfg;
+use tower::ServiceBuilder;
+use tower_http::trace::TraceLayer;
 
 use crate::args::Args;
 
@@ -65,13 +67,15 @@ async fn main() {
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
         .nest_service("/s", ServeDir::new("static"))
-        .route("/", routing::get(index));
+        .route("/", routing::get(index))
+        .layer(ServiceBuilder::new()
+            .layer(TraceLayer::new_for_http())
+            .layer(CompressionLayer::new()));
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
     info!("host = {}", &args.host);
     axum::Server::bind(&args.host.parse().unwrap())
         .serve(app.into_make_service())
-        //TODO @mark: axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .await.unwrap();
 }
