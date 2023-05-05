@@ -22,7 +22,7 @@ fn hash(pth: &Path) -> String {
     let mut file = fs::File::open(pth).unwrap_or_else(|_| panic!("cannot find image file {:?}", &pth));
     let _bytes_written = io::copy(&mut file, &mut hasher).unwrap();
     let hash_bytes = hasher.finalize();
-    general_purpose::URL_SAFE_NO_PAD.encode(hash_bytes)[..16].to_owned()
+    general_purpose::URL_SAFE_NO_PAD.encode(hash_bytes)[..10].to_owned()
 }
 
 pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
@@ -30,7 +30,7 @@ pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
         .map(|name| {
             let mut pth = PathBuf::from("static");
             pth.push(name);
-            let mut url = PathBuf::from("s");
+            let mut url = PathBuf::from("/s");
             url.push(name);
             format!("{}?v={}",
                     url.to_str().expect("css file path not utf safe"),
@@ -42,7 +42,7 @@ pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
 pub static LOGO_PATH: LazyLock<String> = LazyLock::new(|| {
     let name = "logo.png";
     let pth = PathBuf::from("static").join(name);
-    let mut url = PathBuf::from("s").join(name);
+    let mut url = PathBuf::from("/s").join(name);
     format!("{}?v={}",
             url.to_str().expect("css file path not utf safe"),
             hash(&pth))
