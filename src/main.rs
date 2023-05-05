@@ -26,6 +26,7 @@ mod resources;
 #[derive(Debug)]
 struct SharedContext {
     base_url: String,
+    logo: String,
     css: Vec<String>,
 }
 
@@ -34,6 +35,7 @@ impl Default for SharedContext {
     fn default() -> Self {
         SharedContext {
             base_url: resources::DOMAIN.clone(),
+            logo: resources::LOGO_PATH.clone(),
             css: resources::CSS_PATHS.clone(),
         }
     }
