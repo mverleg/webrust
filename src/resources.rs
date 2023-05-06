@@ -40,7 +40,7 @@ pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
 pub static LOGO_PATH: LazyLock<String> = LazyLock::new(|| {
     let name = "logo.png";
     let pth = PathBuf::from("static").join(name);
-    let mut url = PathBuf::from("/s").join(name);
+    let url = PathBuf::from("/s").join(name);
     format!("{}?v={}",
             url.to_str().expect("css file path not utf safe"),
             hash(&pth))

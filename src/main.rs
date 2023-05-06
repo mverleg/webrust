@@ -1,19 +1,25 @@
 #![feature(lazy_cell)]
 
 use ::askama::Template;
+use ::axum::http::HeaderValue;
 use ::axum::response::Html;
+use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
+use ::hyper::header;
+use ::minify_html::Cfg;
+use ::time;
+use ::tower::ServiceBuilder;
+use ::tower::ServiceExt;
+use ::tower_http::compression::CompressionLayer;
+use ::tower_http::services::ServeDir;
+use ::tower_http::trace::TraceLayer;
 use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
-
-use ::tower_http::services::ServeDir;
-use axum::Router;
-use minify_html::Cfg;
-use tower::ServiceBuilder;
-use tower_http::trace::TraceLayer;
+use ::time::OffsetDateTime;
+use ::time::format_description;
 
 use crate::args::Args;
 
@@ -23,6 +29,8 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
 mod resources;
+
+// static FAR_FUTURE: &'static str = &OffsetDateTime::now_utc().format("%a, %d %b %Y %H:%M:%S %Z").unwrap();
 
 //TODO @mark: brotli
 
@@ -64,9 +72,11 @@ async fn main() {
     // initialize this to detect problems on startup instead of first request
     SharedContext::default();
 
+    let datetime_format = format_description::parse("%a, %d %b %Y %H:%M:%S %Z").unwrap();
+    info!("expires: {}", OffsetDateTime::now_utc().format(&datetime_format).unwrap());  //TODO @mark: TEMPORARY! REMOVE THIS!
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
-        .nest_service("/s", ServeDir::new("static"))
+        //.nest_service("/s", ServeDir::new("static").map_response(|mut resp| resp.headers_mut().insert(header::EXPIRES, HeaderValue::from_static(FAR_FUTURE))))
         .route("/", routing::get(index))
         .layer(ServiceBuilder::new()
             .layer(TraceLayer::new_for_http())
