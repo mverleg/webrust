@@ -20,6 +20,7 @@ use ::tracing::span;
 use ::tracing_subscriber;
 use ::time::OffsetDateTime;
 use ::time::format_description;
+use hyper::StatusCode;
 
 use crate::args::Args;
 
@@ -29,8 +30,6 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
 mod resources;
-
-// static FAR_FUTURE: &'static str = &OffsetDateTime::now_utc().format("%a, %d %b %Y %H:%M:%S %Z").unwrap();
 
 //TODO @mark: brotli
 
@@ -72,11 +71,14 @@ async fn main() {
     // initialize this to detect problems on startup instead of first request
     SharedContext::default();
 
-    let datetime_format = format_description::parse("%a, %d %b %Y %H:%M:%S %Z").unwrap();
-    info!("expires: {}", OffsetDateTime::now_utc().format(&datetime_format).unwrap());  //TODO @mark: TEMPORARY! REMOVE THIS!
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
-        //.nest_service("/s", ServeDir::new("static").map_response(|mut resp| resp.headers_mut().insert(header::EXPIRES, HeaderValue::from_static(FAR_FUTURE))))
+        .nest_service("/s", ServeDir::new("static").map_response(|mut resp| {
+            if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
+                resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
+            }
+            resp
+        }))
         .route("/", routing::get(index))
         .layer(ServiceBuilder::new()
             .layer(TraceLayer::new_for_http())
