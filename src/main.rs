@@ -36,6 +36,7 @@ use crate::args::Args;
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
+mod conf;
 mod resources;
 
 //TODO @mark: brotli

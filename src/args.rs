@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use ::clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -5,6 +6,8 @@ use ::clap::Parser;
 pub struct Args {
     #[arg(default_value = "127.0.0.1:8080")]
     pub host: String,
+    #[arg(default_value = "/tmp/webrust.conf.json")]
+    pub conf_state_path: PathBuf,
 }
 
 #[test]
