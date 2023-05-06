@@ -90,7 +90,8 @@ async fn main() {
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));
         .nest("/s", Router::new()
-            .nest_service("/", ServeDir::new("static"))
+            .nest_service("/", ServeDir::new("static")
+                .fallback(ServeDir::new("vendor")))
             .layer(map_response(add_cache_control_header)))
             //TODO @mark: is this weird double-route structure needed? I tried quite a while to simplify but didn't succeed
         // .layer(map_response(add_cache_control_header)))
