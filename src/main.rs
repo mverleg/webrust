@@ -1,26 +1,27 @@
+#![forbid(unsafe_code)]
 #![feature(lazy_cell)]
 
 use ::askama::Template;
-use ::axum::http::HeaderValue;
+use ::askama_axum::Response;
 use ::axum::response::Html;
 use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
-use ::hyper::header;
 use ::minify_html::Cfg;
-use ::time;
 use ::tower::ServiceBuilder;
 use ::tower::ServiceExt;
 use ::tower_http::compression::CompressionLayer;
+use ::tower_http::limit::ResponseBody;
+use ::tower_http::services::fs::ServeFileSystemResponseBody;
 use ::tower_http::services::ServeDir;
 use ::tower_http::trace::TraceLayer;
 use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
-use ::time::OffsetDateTime;
-use ::time::format_description;
-use hyper::StatusCode;
+use axum::http::Method;
+use tower_http::cors;
+use tower_http::cors::CorsLayer;
 
 use crate::args::Args;
 
@@ -73,16 +74,19 @@ async fn main() {
 
     let app = Router::new()
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
-        .nest_service("/s", ServeDir::new("static").map_response(|mut resp| {
-            if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
-                resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
-            }
-            resp
-        }))
+        // .nest_service("/s", ServeDir::new("static").map_response(|mut resp: Response<ServeFileSystemResponseBody>| {
+        //     // if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
+        //     //     resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
+        //     // }
+        //     //TODO @mark: minify css?
+        //     resp
+        // }))
         .route("/", routing::get(index))
         .layer(ServiceBuilder::new()
+            .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
             .layer(TraceLayer::new_for_http())
-            .layer(CompressionLayer::new()));
+            .layer(CompressionLayer::new())
+        );
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
