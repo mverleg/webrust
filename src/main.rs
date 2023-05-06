@@ -5,12 +5,16 @@ use std::time::Duration;
 
 use ::askama::Template;
 use ::askama_axum::Response;
+use ::axum::error_handling::{HandleError, HandleErrorLayer};
+use ::axum::http::{header, HeaderValue, Request, StatusCode};
 use ::axum::http::Method;
+use ::axum::middleware::map_response;
 use ::axum::response::Html;
 use ::axum::Router;
 use ::axum::routing;
 use ::clap::Parser;
 use ::minify_html::Cfg;
+use ::tower::Service;
 use ::tower::ServiceBuilder;
 use ::tower::ServiceExt;
 use ::tower_http::compression::CompressionLayer;
@@ -24,9 +28,6 @@ use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
-use axum::error_handling::{HandleError, HandleErrorLayer};
-use axum::http::{header, HeaderValue, Request, StatusCode};
-use axum::middleware::map_response;
 
 use crate::args::Args;
 
@@ -88,13 +89,16 @@ async fn main() {
         .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));
-        .nest_service("/s", ServeDir::new("static"))
-        .layer(map_response(add_cache_control_header))
+        .nest("/s", Router::new()
+            .nest_service("/", ServeDir::new("static"))
+            .layer(map_response(add_cache_control_header)))
+            //TODO @mark: is this weird double-route structure needed? I tried quite a while to simplify but didn't succeed
+        // .layer(map_response(add_cache_control_header)))
         // .nest_service("/s", <ServeDir as tower::ServiceExt<Request<ReqBody>>>::map_response::<fn(Response<ServeFileSystemResponseBody>) -> Response<ServeFileSystemResponseBody> {add_cache_control_header::<ServeFileSystemResponseBody>}, Response<ServeFileSystemResponseBody>>(ServeDir::new("static"), add_cache_control_header))
         .layer(ServiceBuilder::new()
-               //     .layer(TraceLayer::new_for_http())  // first because needs other layers to be Default
-               //     .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
-               //     .layer(CompressionLayer::new())
+            .layer(TraceLayer::new_for_http())  // first because needs other layers to be Default
+            .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
+            .layer(CompressionLayer::new())
         );
 
     let span = span!(Level::INFO, "running_server");
