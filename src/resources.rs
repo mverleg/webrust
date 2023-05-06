@@ -24,7 +24,7 @@ fn hash(pth: &Path) -> String {
 }
 
 pub static CSS_PATHS: LazyLock<Vec<String>> = LazyLock::new(|| {
-    ["style.css"].into_iter()
+    ["style.css", "pico.css"].into_iter()
         .map(|name| {
             let mut pth = PathBuf::from("static");
             pth.push(name);

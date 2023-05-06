@@ -3,7 +3,12 @@ main {
     min-height: 50em;
 }
 
+/* Pink (Common styles) */
 :root {
+    --primary: #d81b60;
+    --primary-hover: #c2185b;
+    --primary-focus: rgba(216, 27, 96, 0.125);
+    --primary-inverse: #FFF;
     --form-element-active-border-color: var(--primary);
     --form-element-focus-color: var(--primary-focus);
     --switch-color: var(--primary-inverse);
