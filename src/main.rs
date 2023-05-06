@@ -1,8 +1,10 @@
 #![forbid(unsafe_code)]
 #![feature(lazy_cell)]
 
+use std::time::Duration;
 use ::askama::Template;
 use ::askama_axum::Response;
+use ::axum::http::Method;
 use ::axum::response::Html;
 use ::axum::Router;
 use ::axum::routing;
@@ -11,6 +13,8 @@ use ::minify_html::Cfg;
 use ::tower::ServiceBuilder;
 use ::tower::ServiceExt;
 use ::tower_http::compression::CompressionLayer;
+use ::tower_http::cors;
+use ::tower_http::cors::CorsLayer;
 use ::tower_http::limit::ResponseBody;
 use ::tower_http::services::fs::ServeFileSystemResponseBody;
 use ::tower_http::services::ServeDir;
@@ -19,9 +23,8 @@ use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
-use axum::http::Method;
-use tower_http::cors;
-use tower_http::cors::CorsLayer;
+use axum::error_handling::{HandleError, HandleErrorLayer};
+use axum::http::StatusCode;
 
 use crate::args::Args;
 
@@ -73,18 +76,20 @@ async fn main() {
     SharedContext::default();
 
     let app = Router::new()
-        .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
-        // .nest_service("/s", ServeDir::new("static").map_response(|mut resp: Response<ServeFileSystemResponseBody>| {
-        //     // if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
-        //     //     resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
-        //     // }
-        //     //TODO @mark: minify css?
-        //     resp
-        // }))
+        .route("/api", HandleError::new(
+            routing::get(|| async { "{\"error\": \"not yet implemented\"}" }),
+            |err| (StatusCode::INTERNAL_SERVER_ERROR, format!("Server error: {}", err))))
+        .nest_service("/s", ServeDir::new("static").map_response(|mut resp: Response<ServeFileSystemResponseBody>| {
+            // if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
+            //     resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
+            // }
+            //TODO @mark: minify css?
+            resp
+        }))
         .route("/", routing::get(index))
         .layer(ServiceBuilder::new()
+            .layer(TraceLayer::new_for_http())  // first because needs other layers to be Default
             .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
-            .layer(TraceLayer::new_for_http())
             .layer(CompressionLayer::new())
         );
 
