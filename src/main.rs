@@ -2,6 +2,7 @@
 #![feature(lazy_cell)]
 
 use std::time::Duration;
+
 use ::askama::Template;
 use ::askama_axum::Response;
 use ::axum::http::Method;
@@ -24,7 +25,7 @@ use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
 use axum::error_handling::{HandleError, HandleErrorLayer};
-use axum::http::StatusCode;
+use axum::http::{header, HeaderValue, Request, StatusCode};
 
 use crate::args::Args;
 
@@ -67,6 +68,13 @@ async fn index() -> Html<Vec<u8>> {
     Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default()))
 }
 
+async fn add_cache_control_header<R>(mut response: Response<R>) -> Response<R> {
+    if response.status() == StatusCode::OK || response.status() == StatusCode::NOT_MODIFIED {
+        response.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
+    }
+    response
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
@@ -76,22 +84,17 @@ async fn main() {
     SharedContext::default();
 
     let app = Router::new()
-        .route("/api", HandleError::new(
-            routing::get(|| async { "{\"error\": \"not yet implemented\"}" }),
-            |err| (StatusCode::INTERNAL_SERVER_ERROR, format!("Server error: {}", err))))
-        .nest_service("/s", ServeDir::new("static").map_response(|mut resp: Response<ServeFileSystemResponseBody>| {
-            // if resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_MODIFIED {
-            //     resp.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
-            // }
-            //TODO @mark: minify css?
-            resp
-        }))
+        .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
         .route("/", routing::get(index))
-        .layer(ServiceBuilder::new()
-            .layer(TraceLayer::new_for_http())  // first because needs other layers to be Default
-            .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
-            .layer(CompressionLayer::new())
-        );
+        // .nest_service("/s", ServeDir::new("static"));
+        .nest_service("/s", ServeDir::new("static").map_response(add_cache_control_header))
+        // .nest_service("/s", <ServeDir as tower::ServiceExt<Request<ReqBody>>>::map_response::<fn(Response<ServeFileSystemResponseBody>) -> Response<ServeFileSystemResponseBody> {add_cache_control_header::<ServeFileSystemResponseBody>}, Response<ServeFileSystemResponseBody>>(ServeDir::new("static"), add_cache_control_header))
+        ;
+        // .layer(ServiceBuilder::new()
+        //     .layer(TraceLayer::new_for_http())  // first because needs other layers to be Default
+        //     .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
+        //     .layer(CompressionLayer::new())
+        // );
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
