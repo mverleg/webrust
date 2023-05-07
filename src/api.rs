@@ -1,17 +1,10 @@
-use ::std::path::PathBuf;
-use std::sync::Arc;
-
-use ::axum;
 use ::axum::extract;
-use ::axum::http::Method;
 use ::axum::http::StatusCode;
 use ::axum::Json;
-use ::clap::Arg;
 use ::serde::Serialize;
 use ::tracing::info;
 
 use crate::AppState;
-use crate::args::Args;
 use crate::conf::Conf;
 
 #[derive(Debug, Serialize)]
@@ -66,6 +59,6 @@ pub async fn api_conf_put(extract::State(state): extract::State<AppState>, extra
     )
 }
 
-pub async fn api_conf_patch(extract::State(args): extract::State<AppState>) -> (StatusCode, Json<Status<Conf>>) {
+pub async fn api_conf_patch(extract::State(_args): extract::State<AppState>) -> (StatusCode, Json<Status<Conf>>) {
     unimplemented!()
 }

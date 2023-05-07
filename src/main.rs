@@ -3,31 +3,26 @@
 #![feature(async_closure)]
 
 use ::std::sync::Arc;
-use ::std::time::Duration;
 
 use ::askama::Template;
 use ::askama_axum::IntoResponse;
 use ::askama_axum::Response;
-use ::axum::error_handling::{HandleError, HandleErrorLayer};
 use ::axum::extract::FromRef;
-use ::axum::http::{header, HeaderValue, Request, StatusCode};
+use ::axum::http::header;
+use ::axum::http::HeaderValue;
 use ::axum::http::Method;
+use ::axum::http::StatusCode;
 use ::axum::middleware::map_response;
 use ::axum::response::Html;
 use ::axum::response::Redirect;
 use ::axum::Router;
 use ::axum::routing;
-use ::axum::ServiceExt;
 use ::clap::Parser;
 use ::minify_html::Cfg;
-use ::tower::Service;
 use ::tower::ServiceBuilder;
 use ::tower_http::compression::CompressionLayer;
 use ::tower_http::cors;
 use ::tower_http::cors::CorsLayer;
-use ::tower_http::limit::ResponseBody;
-use ::tower_http::normalize_path::NormalizePath;
-use ::tower_http::services::fs::ServeFileSystemResponseBody;
 use ::tower_http::services::ServeDir;
 use ::tower_http::trace::TraceLayer;
 use ::tracing::info;

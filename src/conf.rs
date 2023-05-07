@@ -4,11 +4,11 @@ use ::std::io::BufWriter;
 use ::std::path::Path;
 use ::std::path::PathBuf;
 use ::std::sync::Arc;
-use ::std::sync::LazyLock;
 use ::std::sync::Mutex;
 
 use ::serde::Deserialize;
 use ::serde::Serialize;
+use ::tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct ConfContainer {
@@ -55,11 +55,13 @@ pub struct Conf {
 
 impl Conf {
     fn load_from_disk(pth: &Path) -> Option<Conf> {
+        info!("reading config from '{}'", pth.to_string_lossy());
         let reader = BufReader::new(File::options().write(false).open(pth).ok()?);
         serde_json::from_reader(reader).ok()
     }
 
     fn save_to_disk(pth: &Path, conf: &Conf) {
+        info!("storing config to '{} new value {:?}'", pth.to_string_lossy(), conf);
         let writer = BufWriter::new(File::options().write(true).create(true).open(pth).unwrap());
         serde_json::to_writer_pretty(writer, conf).unwrap()
     }
