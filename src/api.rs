@@ -36,13 +36,15 @@ pub async fn api_index() -> Json<ApiIndex> {
 }
 
 pub async fn api_conf_get(args: &Args) -> (StatusCode, Json<Status<Conf>>) {
-    //TODO @mark: I didn't find an automatic way to do this...
+    let conf_ref = CONF.get(&args.conf_state_path);
+    let conf = (*conf_ref).clone();
+    //TODO @mark: cannot borrow conf (because lifetimes) and cannot use Arc (because Serde), so clone
     (
         StatusCode::OK,
         Json(Status {
             is_ok: true,
             msg: "latest config".to_string(),
-            data: Some(CONF.get(&args.conf_state_path)),
+            data: Some(conf),
             //TODO @mark: get this as argument
         })
     )

@@ -2,6 +2,7 @@
 #![feature(lazy_cell)]
 #![feature(async_closure)]
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use ::askama::Template;
@@ -85,16 +86,16 @@ async fn add_cache_control_header<R>(mut response: Response<R>) -> Response<R> {
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let args = Args::parse();
+    let args = Arc::new(Args::parse());
     // initialize this to detect problems on startup instead of first request
     SharedContext::default();
 
     let app = Router::new()
         .nest("/api", Router::new()
             .route("/", routing::get(api_index))
-            .route("/conf", routing::get(async || api_conf_get(&args).await))
-            .route("/conf", routing::put(async || api_conf_put(&args).await))
-            .route("/conf", routing::patch(async || api_conf_patch(&args).await)))
+            .route("/conf", routing::get(async || api_conf_get(&*args.clone()).await))
+            .route("/conf", routing::put(async || api_conf_put(&*args.clone()).await))
+            .route("/conf", routing::patch(async || api_conf_patch(&*args.clone()).await)))
             //TODO @mark: pass args in more elegant way
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));
