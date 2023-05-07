@@ -14,10 +14,10 @@ use crate::args::Args;
 use crate::conf::Conf;
 
 #[derive(Debug, Serialize)]
-pub struct Status<'a, D: Serialize> {
+pub struct Status<D: Serialize> {
     is_ok: bool,
     msg: String,
-    data: Option<&'a D>,
+    data: Option<D>,
 }
 
 #[derive(Debug, Serialize)]
@@ -39,20 +39,15 @@ pub async fn api_index() -> Json<ApiIndex> {
     })
 }
 
-pub async fn api_conf_get(State(state): State<AppState>) -> (StatusCode, Json<Vec<u8>>) {
-    let conf_ref = state.conf();
-    let conf = conf_ref;
-    //TODO @mark: cannot borrow conf (because lifetimes) and cannot use Arc (because Serde), so clone
-    let mut json = Vec::new();
-    serde_json::to_writer(&mut json, &Status {
-        is_ok: true,
-        msg: "latest config".to_string(),
-        data: Some(&*conf),
-        //TODO @mark: get this as argument
-    }).unwrap();
+pub async fn api_conf_get(State(state): State<AppState>) -> (StatusCode, Json<Status<Conf>>) {
     (
         StatusCode::OK,
-        Json(json)
+        Json(Status {
+            is_ok: true,
+            msg: "latest config".to_string(),
+            data: Some((*state.conf()).clone()),
+            //TODO @mark: get this as argument
+        })
     )
 }
 

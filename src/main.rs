@@ -2,8 +2,8 @@
 #![feature(lazy_cell)]
 #![feature(async_closure)]
 
-use std::sync::Arc;
-use std::time::Duration;
+use ::std::sync::Arc;
+use ::std::time::Duration;
 
 use ::askama::Template;
 use ::askama_axum::IntoResponse;
@@ -14,6 +14,7 @@ use ::axum::http::{header, HeaderValue, Request, StatusCode};
 use ::axum::http::Method;
 use ::axum::middleware::map_response;
 use ::axum::response::Html;
+use ::axum::response::Redirect;
 use ::axum::Router;
 use ::axum::routing;
 use ::axum::ServiceExt;
@@ -155,6 +156,8 @@ async fn main() {
             .with_state(state)
             //TODO @mark: pass args in more elegant way
         .route("/", routing::get(index))
+        .route("/favicon.ico", routing::get(async || Redirect::temporary("/s/logo.png")))
+        // redirect works but browser does not accept, possibly because type change? ^
         // .nest_service("/s", ServeDir::new("static"));
         .nest("/s", Router::new()
             .nest_service("/", ServeDir::new("static"))
