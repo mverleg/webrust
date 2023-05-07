@@ -48,8 +48,6 @@ mod conf;
 mod api;
 mod resources;
 
-//TODO @mark: brotli
-
 #[derive(Debug)]
 struct SharedContext {
     base_url: String,
@@ -85,6 +83,7 @@ struct NotificationTemplate<'a> {
 }
 
 async fn index() -> Html<Vec<u8>> {
+    eprintln!("hello world");  //TODO @mark: TEMPORARY! REMOVE THIS!
     let templ = IndexTemplate { shared: SharedContext::default(), name: "world" };
     Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default()))
 }
@@ -171,7 +170,7 @@ async fn main() {
             .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
             .layer(CompressionLayer::new())
         );
-    let app = NormalizePath::trim_trailing_slash(app);
+    // let app = NormalizePath::trim_trailing_slash(app);
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
