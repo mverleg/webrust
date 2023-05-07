@@ -47,7 +47,7 @@ impl ConfContainer {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Default, Clone)]
 pub struct Conf {
     name: String,
     score: u8,

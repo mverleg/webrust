@@ -14,10 +14,10 @@ use crate::args::Args;
 use crate::conf::Conf;
 
 #[derive(Debug, Serialize)]
-pub struct Status<D: Serialize> {
+pub struct Status<'a, D: Serialize> {
     is_ok: bool,
     msg: String,
-    data: Option<D>,
+    data: Option<&'a D>,
 }
 
 #[derive(Debug, Serialize)]
@@ -39,26 +39,28 @@ pub async fn api_index() -> Json<ApiIndex> {
     })
 }
 
-pub async fn api_conf_get(State(state): State<AppState>) -> (StatusCode, Json<Status<Conf>>) {
+pub async fn api_conf_get(State(state): State<AppState>) -> (StatusCode, Json<Vec<u8>>) {
     let conf_ref = state.conf();
-    let conf = (*conf_ref).clone();
+    let conf = conf_ref;
     //TODO @mark: cannot borrow conf (because lifetimes) and cannot use Arc (because Serde), so clone
+    let mut json = Vec::new();
+    serde_json::to_writer(&mut json, &Status {
+        is_ok: true,
+        msg: "latest config".to_string(),
+        data: Some(&*conf),
+        //TODO @mark: get this as argument
+    }).unwrap();
     (
         StatusCode::OK,
-        Json(Status {
-            is_ok: true,
-            msg: "latest config".to_string(),
-            data: Some(conf),
-            //TODO @mark: get this as argument
-        })
+        Json(json)
     )
 }
 
-pub async fn api_conf_put(State(args): State<Arc<Args>>) -> Json<Status<Conf>> {
+pub async fn api_conf_put(State(args): State<Arc<Args>>) -> (StatusCode, Json<Vec<u8>>) {
     //TODO @mark: I didn't find an automatic way to do this...
     unimplemented!()
 }
 
-pub async fn api_conf_patch(State(args): State<Arc<Args>>) -> Json<Status<Conf>> {
+pub async fn api_conf_patch(State(args): State<Arc<Args>>) -> (StatusCode, Json<Vec<u8>>) {
     unimplemented!()
 }
