@@ -90,11 +90,18 @@ struct AppState {
     conf_container: ConfContainer,
 }
 
+impl AppState {
+    pub fn conf(&self) -> Arc<Conf> {
+        self.conf_container.get(&self.args.conf_state_path)
+    }
+}
+
 impl FromRef<AppState> for Arc<Args> {
     fn from_ref(state: &AppState) -> Self {
         state.args.clone()
     }
 }
+//TODO @mark: probably not that useful since we seem unable to get two states per handler
 
 // impl FromRef<AppState> for ConfContainer {
 //     fn from_ref(state: &AppState) -> Self {
@@ -108,6 +115,7 @@ impl FromRef<AppState> for Arc<Conf> {
         state.conf_container.get(&state.args.conf_state_path)
     }
 }
+//TODO @mark: probably not that useful since we seem unable to get two states per handler
 
 #[tokio::main]
 async fn main() {
@@ -117,13 +125,17 @@ async fn main() {
     // initialize this to detect problems on startup instead of first request
     SharedContext::default();
 
+    let conf_container = ConfContainer::empty();
+    //TODO @mark: since we do this in main instead of static, we may get rid op optional ^
+    let state = AppState { args: args.clone(), conf_container };
+
     let app = Router::new()
         .nest("/api", Router::new()
             .route("/", routing::get(api_index))
             .route("/conf", routing::get(api_conf_get))
             .route("/conf", routing::put(api_conf_put))
             .route("/conf", routing::patch(api_conf_patch)))
-            .with_state(args.clone())
+            .with_state(state)
             //TODO @mark: pass args in more elegant way
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));

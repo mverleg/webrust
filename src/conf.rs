@@ -10,8 +10,6 @@ use ::std::sync::Mutex;
 use ::serde::Deserialize;
 use ::serde::Serialize;
 
-pub static CONF: LazyLock<ConfContainer> = LazyLock::new(ConfContainer::empty);
-
 #[derive(Debug, Clone)]
 pub struct ConfContainer {
     conf: Arc<Mutex<Option<(PathBuf, Arc<Conf>)>>>,

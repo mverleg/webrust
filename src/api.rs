@@ -8,9 +8,10 @@ use ::axum::Json;
 use ::clap::Arg;
 use ::serde::Serialize;
 use ::axum;
+use crate::AppState;
 
 use crate::args::Args;
-use crate::conf::{Conf, CONF};
+use crate::conf::Conf;
 
 #[derive(Debug, Serialize)]
 pub struct Status<D: Serialize> {
@@ -38,8 +39,8 @@ pub async fn api_index() -> Json<ApiIndex> {
     })
 }
 
-pub async fn api_conf_get(State(args): State<Arc<Args>>) -> (StatusCode, Json<Status<Conf>>) {
-    let conf_ref = CONF.get(&args.conf_state_path);
+pub async fn api_conf_get(State(state): State<AppState>) -> (StatusCode, Json<Status<Conf>>) {
+    let conf_ref = state.conf();
     let conf = (*conf_ref).clone();
     //TODO @mark: cannot borrow conf (because lifetimes) and cannot use Arc (because Serde), so clone
     (
