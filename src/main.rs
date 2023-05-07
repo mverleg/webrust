@@ -30,6 +30,7 @@ use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
+use askama_axum::IntoResponse;
 use axum::extract::FromRef;
 
 use crate::api::{api_conf_get, api_conf_patch, api_conf_put, api_index};
@@ -72,9 +73,23 @@ struct IndexTemplate<'a> {
     name: &'a str,
 }
 
+#[derive(Template)]
+#[template(path = "notification.html")]
+struct NotificationTemplate<'a> {
+    shared: SharedContext,
+    title: &'a str,
+    message: &'a str,
+    is_err: bool,
+}
+
 async fn index() -> Html<Vec<u8>> {
     let templ = IndexTemplate { shared: SharedContext::default(), name: "world" };
     Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default()))
+}
+
+async fn not_found() -> impl IntoResponse {
+    let templ = NotificationTemplate { shared: SharedContext::default(), title: "Not found", message: "The page you were looking for could not be found. There might be a typo in the address, or the page might have disappeared.", is_err: true };
+    (StatusCode::NOT_FOUND, Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default())))
 }
 
 async fn add_cache_control_header<R>(mut response: Response<R>) -> Response<R> {
@@ -85,7 +100,7 @@ async fn add_cache_control_header<R>(mut response: Response<R>) -> Response<R> {
 }
 
 #[derive(Clone)]
-struct AppState {
+pub struct AppState {
     args: Arc<Args>,
     conf_container: ConfContainer,
 }
@@ -142,6 +157,7 @@ async fn main() {
         .nest("/s", Router::new()
             .nest_service("/", ServeDir::new("static"))
             .layer(map_response(add_cache_control_header)))
+        .fallback(not_found)
             //TODO @mark: is this weird double-route structure needed? I tried quite a while to simplify but didn't succeed
         // .layer(map_response(add_cache_control_header)))
         // .nest_service("/s", <ServeDir as tower::ServiceExt<Request<ReqBody>>>::map_response::<fn(Response<ServeFileSystemResponseBody>) -> Response<ServeFileSystemResponseBody> {add_cache_control_header::<ServeFileSystemResponseBody>}, Response<ServeFileSystemResponseBody>>(ServeDir::new("static"), add_cache_control_header))

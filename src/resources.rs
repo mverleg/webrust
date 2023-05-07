@@ -11,7 +11,7 @@ use ::sha2::Digest;
 use ::sha2::Sha256;
 
 pub static DOMAIN: LazyLock<String> = LazyLock::new(||
-    env::var("WEBRUST_DOMAIN").unwrap_or_else(|_| "localhost:8080".to_owned()));
+    env::var("WEBRUST_DOMAIN").unwrap_or_else(|_| "http://localhost:8080".to_owned()));
 
 //static RESOURCE_HASHES: Arc<DashMap<String, String>> = Arc::new(DashMap::new());
 

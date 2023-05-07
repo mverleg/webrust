@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+{% if is_err %}
+ERROR!
+{% endif %}
+<h1>{{ title }}</h1>
+<p>{{ message }}</p>
+<p>Do you want to <a href="{{ shared.base_url }}">return to the main page</a>?</p>
+<dialog open>
+    <article>
+        <h3>{{ title }}</h3>
+        <p>{{ message }}</p>
+        <footer>
+            <a href="{{ shared.base_url }}" role="button">To main page</a>
+        </footer>
+    </article>
+</dialog>
+{% endblock content %}
