@@ -3,18 +3,16 @@
 {% block title %}{{ title }}{% endblock title %}
 
 {% block content %}
-{% if is_err %}
-ERROR!
-{% endif %}
-<h1>{{ title }}</h1>
+<h1>{% if is_err %}⚠️{% else %}🛈{% endif %} {{ title }}</h1>
 <p>{{ message }}</p>
 <p>Do you want to <a href="{{ shared.base_url }}">return to the main page</a>?</p>
 <dialog open>
     <article>
-        <h3>{{ title }}</h3>
+        <h3>{% if is_err %}⚠️{% else %}}🛈{% endif %} {{ title }}</h3>
         <p>{{ message }}</p>
         <footer>
-            <a href="{{ shared.base_url }}" role="button">To main page</a>
+            <a href="#" onclick="history.back()" role="button" class="secondary">Back</a>
+            <a href="{{ shared.base_url }}" role="button">Main page</a>
         </footer>
     </article>
 </dialog>

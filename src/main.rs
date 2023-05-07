@@ -88,7 +88,7 @@ async fn index() -> Html<Vec<u8>> {
 }
 
 async fn not_found() -> impl IntoResponse {
-    let templ = NotificationTemplate { shared: SharedContext::default(), title: "Not found", message: "The page you were looking for could not be found. There might be a typo in the address, or the page might have disappeared.", is_err: true };
+    let templ = NotificationTemplate { shared: SharedContext::default(), title: "Not found", message: "The page you were looking for could not be found. There might be a typo in the address, or the page might have moved or disappeared.", is_err: false };
     (StatusCode::NOT_FOUND, Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default())))
 }
 
