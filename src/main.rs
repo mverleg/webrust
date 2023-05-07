@@ -30,9 +30,11 @@ use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
+use axum::extract::FromRef;
 
 use crate::api::{api_conf_get, api_conf_patch, api_conf_put, api_index};
 use crate::args::Args;
+use crate::conf::{Conf, ConfContainer};
 
 #[cfg(feature = "jemalloc")]
 #[global_allocator]
@@ -80,6 +82,31 @@ async fn add_cache_control_header<R>(mut response: Response<R>) -> Response<R> {
         response.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=604800"));
     }
     response
+}
+
+#[derive(Clone)]
+struct AppState {
+    args: Arc<Args>,
+    conf_container: ConfContainer,
+}
+
+impl FromRef<AppState> for Arc<Args> {
+    fn from_ref(state: &AppState) -> Self {
+        state.args.clone()
+    }
+}
+
+// impl FromRef<AppState> for ConfContainer {
+//     fn from_ref(state: &AppState) -> Self {
+//         state.conf_container.clone()
+//     }
+// }
+//TODO @mark: ^
+
+impl FromRef<AppState> for Arc<Conf> {
+    fn from_ref(state: &AppState) -> Self {
+        state.conf_container.get(&state.args.conf_state_path)
+    }
 }
 
 #[tokio::main]

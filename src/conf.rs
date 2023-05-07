@@ -12,14 +12,14 @@ use ::serde::Serialize;
 
 pub static CONF: LazyLock<ConfContainer> = LazyLock::new(ConfContainer::empty);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ConfContainer {
-    conf: Mutex<Option<(PathBuf, Arc<Conf>)>>,
+    conf: Arc<Mutex<Option<(PathBuf, Arc<Conf>)>>>,
 }
 
 impl ConfContainer {
     pub fn empty() -> Self {
-        ConfContainer { conf: Mutex::new(None) }
+        ConfContainer { conf: Arc::new(Mutex::new(None)) }
     }
 
     pub fn get(&self, pth: &Path) -> Arc<Conf> {
