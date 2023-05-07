@@ -10,7 +10,7 @@ use ::serde::Deserialize;
 use ::serde::Serialize;
 use ::tokio::sync::Mutex;
 
-static CONF: LazyLock<ConfContainer> = LazyLock::new(ConfContainer::empty);
+pub static CONF: LazyLock<ConfContainer> = LazyLock::new(ConfContainer::empty);
 
 #[derive(Debug)]
 pub struct ConfContainer {
@@ -22,7 +22,7 @@ impl ConfContainer {
         ConfContainer { conf: Mutex::new(None) }
     }
 
-    fn get(&mut self, pth: &Path) -> Arc<Conf> {
+    pub fn get(&mut self, pth: &Path) -> Arc<Conf> {
         let mut conf_ref = self.conf.get_mut();
         match conf_ref {
             Some((conf_pth, conf)) => {
@@ -37,7 +37,7 @@ impl ConfContainer {
         }
     }
 
-    fn set(&mut self, pth: &Path, new_conf: Conf) {
+    pub fn set(&mut self, pth: &Path, new_conf: Conf) {
         let new_state = Some((pth.to_owned(), Arc::new(new_conf)));
         let mut conf_ref = self.conf.get_mut();
         if let Some((conf_pth, _)) = conf_ref {

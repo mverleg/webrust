@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 #![feature(lazy_cell)]
+#![feature(async_closure)]
 
 use std::time::Duration;
 
@@ -29,6 +30,7 @@ use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
 
+use crate::api::{api_conf_get, api_conf_patch, api_conf_put, api_index};
 use crate::args::Args;
 
 #[cfg(feature = "jemalloc")]
@@ -37,6 +39,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 mod args;
 mod conf;
+mod api;
 mod resources;
 
 //TODO @mark: brotli
@@ -87,7 +90,12 @@ async fn main() {
     SharedContext::default();
 
     let app = Router::new()
-        .route("/api", routing::get(|| async { "{\"error\": \"not yet implemented\"}" }))
+        .nest("/api", Router::new()
+            .route("/", routing::get(api_index))
+            .route("/conf", routing::get(async || api_conf_get(&args).await))
+            .route("/conf", routing::put(async || api_conf_put(&args).await))
+            .route("/conf", routing::patch(async || api_conf_patch(&args).await)))
+            //TODO @mark: pass args in more elegant way
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));
         .nest("/s", Router::new()
