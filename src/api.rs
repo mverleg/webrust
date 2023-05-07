@@ -1,10 +1,13 @@
 use ::std::path::PathBuf;
+use std::sync::Arc;
 
+use ::axum::extract::State;
 use ::axum::http::Method;
+use ::axum::http::StatusCode;
 use ::axum::Json;
+use ::clap::Arg;
 use ::serde::Serialize;
-use axum::http::StatusCode;
-use clap::Arg;
+use ::axum;
 
 use crate::args::Args;
 use crate::conf::{Conf, CONF};
@@ -35,7 +38,7 @@ pub async fn api_index() -> Json<ApiIndex> {
     })
 }
 
-pub async fn api_conf_get(args: &Args) -> (StatusCode, Json<Status<Conf>>) {
+pub async fn api_conf_get(State(args): State<Arc<Args>>) -> (StatusCode, Json<Status<Conf>>) {
     let conf_ref = CONF.get(&args.conf_state_path);
     let conf = (*conf_ref).clone();
     //TODO @mark: cannot borrow conf (because lifetimes) and cannot use Arc (because Serde), so clone
@@ -50,11 +53,11 @@ pub async fn api_conf_get(args: &Args) -> (StatusCode, Json<Status<Conf>>) {
     )
 }
 
-pub async fn api_conf_put(args: &Args) -> Json<Status<Conf>> {
+pub async fn api_conf_put(State(args): State<Arc<Args>>) -> Json<Status<Conf>> {
     //TODO @mark: I didn't find an automatic way to do this...
     unimplemented!()
 }
 
-pub async fn api_conf_patch(args: &Args) -> Json<Status<Conf>> {
+pub async fn api_conf_patch(State(args): State<Arc<Args>>) -> Json<Status<Conf>> {
     unimplemented!()
 }

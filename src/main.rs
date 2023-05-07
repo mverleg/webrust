@@ -93,9 +93,10 @@ async fn main() {
     let app = Router::new()
         .nest("/api", Router::new()
             .route("/", routing::get(api_index))
-            .route("/conf", routing::get(async || api_conf_get(&*args.clone()).await))
-            .route("/conf", routing::put(async || api_conf_put(&*args.clone()).await))
-            .route("/conf", routing::patch(async || api_conf_patch(&*args.clone()).await)))
+            .route("/conf", routing::get(api_conf_get))
+            .route("/conf", routing::put(api_conf_put))
+            .route("/conf", routing::patch(api_conf_patch)))
+            .with_state(args.clone())
             //TODO @mark: pass args in more elegant way
         .route("/", routing::get(index))
         // .nest_service("/s", ServeDir::new("static"));
