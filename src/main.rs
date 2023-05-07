@@ -6,23 +6,26 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use ::askama::Template;
+use ::askama_axum::IntoResponse;
 use ::askama_axum::Response;
 use ::axum::error_handling::{HandleError, HandleErrorLayer};
+use ::axum::extract::FromRef;
 use ::axum::http::{header, HeaderValue, Request, StatusCode};
 use ::axum::http::Method;
 use ::axum::middleware::map_response;
 use ::axum::response::Html;
 use ::axum::Router;
 use ::axum::routing;
+use ::axum::ServiceExt;
 use ::clap::Parser;
 use ::minify_html::Cfg;
 use ::tower::Service;
 use ::tower::ServiceBuilder;
-use ::tower::ServiceExt;
 use ::tower_http::compression::CompressionLayer;
 use ::tower_http::cors;
 use ::tower_http::cors::CorsLayer;
 use ::tower_http::limit::ResponseBody;
+use ::tower_http::normalize_path::NormalizePath;
 use ::tower_http::services::fs::ServeFileSystemResponseBody;
 use ::tower_http::services::ServeDir;
 use ::tower_http::trace::TraceLayer;
@@ -30,8 +33,6 @@ use ::tracing::info;
 use ::tracing::Level;
 use ::tracing::span;
 use ::tracing_subscriber;
-use askama_axum::IntoResponse;
-use axum::extract::FromRef;
 
 use crate::api::{api_conf_get, api_conf_patch, api_conf_put, api_index};
 use crate::args::Args;
@@ -88,7 +89,8 @@ async fn index() -> Html<Vec<u8>> {
 }
 
 async fn not_found() -> impl IntoResponse {
-    let templ = NotificationTemplate { shared: SharedContext::default(), title: "Not found", message: "The page you were looking for could not be found. There might be a typo in the address, or the page might have moved or disappeared.", is_err: false };
+    let templ = NotificationTemplate { shared: SharedContext::default(), title: "Not found", is_err: true,
+        message: "The page you were looking for could not be found. There might be a typo in the address, or the page might have moved or disappeared." };
     (StatusCode::NOT_FOUND, Html(minify_html::minify(templ.render().unwrap().as_bytes(), &Cfg::default())))
 }
 
@@ -166,6 +168,7 @@ async fn main() {
             .layer(CorsLayer::new().allow_methods([Method::HEAD, Method::GET]).allow_origin(cors::Any))
             .layer(CompressionLayer::new())
         );
+    let app = NormalizePath::trim_trailing_slash(app);
 
     let span = span!(Level::INFO, "running_server");
     let _guard = span.enter();
